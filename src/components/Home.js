@@ -60,6 +60,7 @@ const Home = () => {
           </select>
         </div>
       </div>
+      <p className='text-2xl m-2 p-2 text-black dark:text-white text-center'>Top Recommended Courses</p>
 
       {/* Course Cards */}
       <CourseCards searchTerm={searchTerm} />
