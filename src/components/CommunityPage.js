@@ -6,6 +6,8 @@ import Header from "./Header";
 import Footer from "./Footer";
 import { getDownloadURL, uploadBytesResumable, ref as sRef } from "firebase/storage";
 
+// Sab khichdi ho gya hai iss component mein, clean krna padega!!
+
 const CommunityPage = () => {
 
     const [newPost, setNewPost] = useState({ title: "", body: "", tags: "", image: "" });
@@ -51,6 +53,14 @@ const CommunityPage = () => {
     }, []);
 
     const handleImageUpload = (e) => {
+
+        // Track and show the uploading of the image for the user.
+        // Notify user that the image has been uploaded.
+        // Preview of the selected image
+        // a bar to diplay the uploadind of the image
+        // compress the image then only store it in RTdb
+        // image should upload only when post is created (if image is provided in post)
+
         const file = e.target.files[0];
         if (!file) return;
 
@@ -66,9 +76,9 @@ const CommunityPage = () => {
                 alert("Failed to upload image. Please try again.");
             },
             () => {
+
                 getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                     setNewPost((prevPost) => ({ ...prevPost, image: downloadURL }));
-                    alert("Image uploaded successfully!");
                 });
             }
         );
@@ -78,14 +88,18 @@ const CommunityPage = () => {
         const now = new Date();
         const postDate = new Date(createdAt);
         const diffInMinutes = Math.floor((now - postDate) / 60000);
-
-        if (diffInMinutes < 60) {
-            return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
-        } else {
-            const hours = Math.floor(diffInMinutes / 60);
-            const minutes = diffInMinutes % 60;
-            return `${hours} hr${hours !== 1 ? 's' : ''} ${minutes ? `${minutes} min${minutes !== 1 ? 's' : ''}` : ''} ago`;
-        }
+        const diffInhours = Math.floor((diffInMinutes) / 60);
+        const diffInDays = Math.floor((diffInhours) / 24);
+        const diffInWeeks = Math.floor((diffInDays) / 7);
+        const diffInMonths = Math.floor((diffInWeeks) / 4);
+        const diffInYears = Math.floor((diffInMonths) / 12);
+        if (diffInYears > 0) return `${diffInYears} years ago`;
+        if (diffInMonths > 0) return `${diffInMonths} months ago`;
+        if (diffInWeeks > 0) return `${diffInWeeks} weeks ago`;
+        if (diffInDays > 0) return `${diffInDays} days ago`;
+        if (diffInhours > 0) return `${diffInhours} hours ago`;
+        if (diffInMinutes > 0) return `${diffInMinutes} minutes ago`;
+        return "just now";
     };
 
     const applyFilters = (posts) => {
@@ -181,10 +195,40 @@ const CommunityPage = () => {
     };
 
     if (isLoading) {
+        // Shimmer UI for loading state
         return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-indigo-600"></div>
-                <p className="ml-4 text-indigo-600 dark:text-indigo-400">Loading community posts...</p>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                <Header />
+                <div className="container mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6 pt-20">
+                    <aside className="lg:col-span-3 bg-white dark:bg-gray-800 p-4 rounded-lg shadow animate-pulse">
+                        <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+                        <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-full mb-4"></div>
+                        <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-2/3"></div>
+                    </aside>
+                    <main className="lg:col-span-6">
+                        {Array.from({ length: 3 }).map((_, index) => (
+                            <div
+                                key={index}
+                                className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg animate-pulse mb-6"
+                            >
+                                <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-1/2 mb-2"></div>
+                                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
+                                <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4"></div>
+                                <div className="space-y-2">
+                                    <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-full"></div>
+                                    <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-5/6"></div>
+                                    <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-2/3"></div>
+                                </div>
+                            </div>
+                        ))}
+                    </main>
+                    <aside className="lg:col-span-3 bg-white dark:bg-gray-800 p-4 rounded-lg shadow animate-pulse">
+                        <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+                        <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-full mb-4"></div>
+                        <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-2/3"></div>
+                    </aside>
+                </div>
+                <Footer />
             </div>
         );
     }
@@ -226,7 +270,8 @@ const CommunityPage = () => {
                             <div key={post.id} className="mb-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4">
                                     {user && (
-                                        <div className="flex flex-col items-center sm:mr-6 mb-4 sm:mb-0">
+
+                                        <div className="flex flex-col items-center justify-end sm:mr-6 mb-4 sm:mb-0">
                                             <button onClick={() => handleVote(post.id, "upvote")} className={`text-green-500 hover:text-green-700 transition ${userVotes[post.id] === "upvote" ? "font-bold" : ""}`}>
                                                 ▲
                                             </button>
@@ -236,8 +281,10 @@ const CommunityPage = () => {
                                             </button>
                                         </div>
                                     )}
-                                    <div className="flex-grow">
+
+                                    <div className="flex-grow relative">
                                         <h2 className="text-xl font-semibold mb-1 text-gray-900 dark:text-gray-100">{post.title}</h2>
+
 
                                         {post.image && (
                                             <img
@@ -247,8 +294,9 @@ const CommunityPage = () => {
                                             />
                                         )}
 
+
                                         <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{post.body}</p>
-                                        <p className="text-gray-500 dark:text-gray-500 text-sm">
+                                        <p className="text-purple-500 dark:text-purple-300 text-sm">
                                             By {post.author || "Anonymous"} | {formatTimeAgo(post.createdAt)}
                                         </p>
 
